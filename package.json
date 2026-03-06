@@ -1,0 +1,13 @@
+{
+  "name": "inventory",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "ido",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "test",
+    "start": "electron ."
+  }
+}

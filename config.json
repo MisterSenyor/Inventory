@@ -1,0 +1,30 @@
+{
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "types": {
+    "Generic": {
+      "fields": [
+        {
+          "name": "id",
+          "label": "ID"
+        }
+      ]
+    },
+    "Specific": {
+      "fields": [
+        {
+          "name": "A",
+          "label": "A"
+        },
+        {
+          "name": "B",
+          "label": "B"
+        }
+      ]
+    }
+  }
+}
