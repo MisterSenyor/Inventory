@@ -1,0 +1,15 @@
+body{
+  font-family: Arial;
+  padding:40px;
+  background:#f4f4f4;
+}
+
+.item{
+  background:white;
+  padding:10px;
+  margin:10px;
+  border-radius:8px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}

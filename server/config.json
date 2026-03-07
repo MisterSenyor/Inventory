@@ -1,9 +1,9 @@
 {
   "classes": [
-    "A",
-    "B",
-    "C",
-    "D"
+    "M",
+    "E",
+    "T",
+    "A"
   ],
   "types": {
     "Generic": {
@@ -17,12 +17,14 @@
     "Specific": {
       "fields": [
         {
-          "name": "A",
-          "label": "A"
+          "name": "id",
+          "label": "ID",
+          "type": "text"
         },
         {
-          "name": "B",
-          "label": "B"
+          "name": "desc",
+          "label": "desc",
+          "type": "text"
         }
       ]
     }

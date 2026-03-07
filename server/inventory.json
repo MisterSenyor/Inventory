@@ -1,0 +1,39 @@
+[
+  {
+    "id": "ITEM-1772723227250",
+    "name": "Test",
+    "type": "Generic",
+    "class": "A",
+    "fields": {
+      "id": "AB45"
+    },
+    "parentId": null,
+    "loanedTo": null
+  },
+  {
+    "id": "5",
+    "name": "ארגונית חיים",
+    "type": "Specific",
+    "class": "E",
+    "fields": {
+      "id": "010101",
+      "desc": "ארגונית רפואית"
+    },
+    "parentId": null,
+    "loanedTo": "76",
+    "imageUrl": ""
+  },
+  {
+    "id": "6",
+    "name": "תא עירוי",
+    "type": "Specific",
+    "class": "T",
+    "fields": {
+      "id": "010101",
+      "desc": "תא בסיסי"
+    },
+    "parentId": "5",
+    "loanedTo": "51",
+    "imageUrl": ""
+  }
+]

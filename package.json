@@ -1,13 +1,16 @@
 {
-  "name": "inventory",
+  "name": "inventory-web",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "ido",
-  "type": "commonjs",
-  "main": "main.js",
+  "description": "Inventory loan manager",
+  "main": "server/server.js",
   "scripts": {
-    "test": "test",
-    "start": "electron ."
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1"
   }
 }
