@@ -1,4 +1,4 @@
-const API_BASE = `https://inventory-h9js.onrender.com:5000`;
+const API_BASE = `https://inventory-h9js.onrender.com`;
 
 async function apiFetch(url, options = {}) {
   const res = await fetch(`${API_BASE}${url}`, {
