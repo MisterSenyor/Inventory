@@ -2,7 +2,7 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="sidebar-brand">BlueShelf</div>
+        <div className="sidebar-brand">טקסטילון</div>
         <div className="sidebar-subtitle">
           ניהול מלאי והשאלות
         </div>
