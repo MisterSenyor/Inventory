@@ -116,11 +116,10 @@ export default function ItemTree({ items, allItems, onEdit }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
 
   const safeItems = Array.isArray(items) ? items : [];
-  const safeAllItems = Array.isArray(allItems) ? allItems : [];
-
   const allItemsByParent = useMemo(() => {
     const map = {};
-    for (const item of safeAllItems) {
+    const list = Array.isArray(allItems) ? allItems : [];
+    for (const item of list) {
       const key = item.parentId || "root";
       if (!map[key]) {
         map[key] = [];
@@ -128,7 +127,7 @@ export default function ItemTree({ items, allItems, onEdit }) {
       map[key].push(item);
     }
     return map;
-  }, [safeAllItems]);
+  }, [allItems]);
 
   const rootItems = safeItems;
 
