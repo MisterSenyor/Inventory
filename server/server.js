@@ -4,22 +4,21 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const session = require("express-session");
 
 const store = require("./inventoryStore");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:30000",
+  "https://peaceful-starburst-c51e22.netlify.app",
+  "https://agent-69ad92596348a99--peaceful-starburst-c51e22.netlify.app",
+];
+
 app.use(
   cors({
     origin(origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:3000",
-        "http://localhost:30000",
-        "https://peaceful-starburst-c51e22.netlify.app",
-        "https://agent-69ad92596348a99--peaceful-starburst-c51e22.netlify.app",
-      ];
-
       if (!origin) {
         return callback(null, true);
       }
@@ -30,28 +29,25 @@ app.use(
 
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
-    credentials: true,
   })
 );
 
 app.use(bodyParser.json());
-app.set("trust proxy", 1); // trust first proxy for secure cookies when behind a proxy
 
-app.use(
-  session({
-    name: "blueshelf.sid",
-    secret: process.env.SESSION_SECRET || "inventory-admin-secret-change-this",
-    resave: false,
-    saveUninitialized: false,
-    proxy: true,
-    cookie: {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 1000 * 60 * 60 * 8,
-    },
-  })
-);
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "blueshelf-admin-token";
+
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : "";
+
+  if (token === ADMIN_TOKEN) {
+    return next();
+  }
+
+  return res.status(401).send("Unauthorized");
+}
 
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -74,40 +70,32 @@ const upload = multer({ storage });
 
 app.use("/uploads", express.static(uploadsDir));
 
-function requireAuth(req, res, next) {
-  if (req.session && req.session.user === "admin") {
-    return next();
-  }
-  return res.status(401).send("Unauthorized");
-}
-
 app.post("/api/login", (req, res) => {
   const username = String(req.body.username || "");
   const password = String(req.body.password || "");
 
-  if (username !== "admin" || password !== "admin") {
-    return res.status(401).send("Invalid username or password");
+  if (username === "admin" && password === "admin") {
+    return res.json({
+      authenticated: true,
+      user: "admin",
+      token: ADMIN_TOKEN,
+    });
   }
 
-  req.session.user = "admin";
-
-  req.session.save((err) => {
-    if (err) {
-      return res.status(500).send("Failed to save session");
-    }
-
-    return res.json({ authenticated: true, user: "admin" });
-  });
+  return res.status(401).send("Invalid username or password");
 });
 
 app.post("/api/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.json({ authenticated: false });
-  });
+  return res.json({ authenticated: false });
 });
 
 app.get("/api/me", (req, res) => {
-  if (req.session && req.session.user === "admin") {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : "";
+
+  if (token === ADMIN_TOKEN) {
     return res.json({ authenticated: true, user: "admin" });
   }
 
@@ -235,6 +223,7 @@ app.delete("/api/config/types/:name", requireAuth, (req, res) => {
   }
 });
 
-app.listen(5000, "0.0.0.0", () => {
-  console.log("API running on http://localhost:5000");
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`API running on port ${port}`);
 });

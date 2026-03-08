@@ -1,9 +1,32 @@
-const API_BASE = `https://inventory-h9js.onrender.com`;
+const API_BASE =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
+function getStoredToken() {
+  return localStorage.getItem("blueshelf_token") || "";
+}
+
+function setStoredToken(token) {
+  if (token) {
+    localStorage.setItem("blueshelf_token", token);
+  } else {
+    localStorage.removeItem("blueshelf_token");
+  }
+}
 
 async function apiFetch(url, options = {}) {
+  const token = getStoredToken();
+
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}${url}`, {
     ...options,
-    credentials: "include",
+    headers,
   });
 
   if (!res.ok) {
@@ -20,14 +43,24 @@ async function apiFetch(url, options = {}) {
 }
 
 export async function login(username, password) {
-  return await apiFetch("/api/login", {
+  const res = await fetch(`${API_BASE}/api/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Login failed");
+  }
+
+  const data = await res.json();
+  setStoredToken(data.token || "");
+  return data;
 }
 
 export async function logout() {
+  setStoredToken("");
   return await apiFetch("/api/logout", {
     method: "POST",
   });
@@ -46,13 +79,27 @@ export async function getConfig() {
 }
 
 export async function uploadImage(file) {
+  const token = getStoredToken();
   const formData = new FormData();
   formData.append("image", file);
 
-  return await apiFetch("/api/upload-image", {
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}/api/upload-image`, {
     method: "POST",
+    headers,
     body: formData,
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to upload image");
+  }
+
+  return await res.json();
 }
 
 export async function addItem(data) {
