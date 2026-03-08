@@ -11,24 +11,11 @@ const store = require("./inventoryStore");
 const app = express();
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:30000",
-      "http://10.0.0.10:3000",
-      "http://10.0.0.10:30000",
-    ];
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("Not allowed by CORS"));
-  },
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:30000",
+    "https://agent-69ad92596348a99--peaceful-starburst-c51e22.netlify.app",
+  ],
   credentials: true,
 }));
 
