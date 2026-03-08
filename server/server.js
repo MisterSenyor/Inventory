@@ -14,7 +14,7 @@ app.use(cors({
   origin: [
     "http://localhost:3000",
     "http://localhost:30000",
-    "https://agent-69ad92596348a99--peaceful-starburst-c51e22.netlify.app",
+    "https://peaceful-starburst-c51e22.netlify.app",
   ],
   credentials: true,
 }));
