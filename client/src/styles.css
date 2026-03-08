@@ -601,3 +601,28 @@ button {
     padding-right: 10px;
   }
 }
+.status-table-wrap {
+  overflow-x: auto;
+}
+
+.status-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.status-table th,
+.status-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.status-table th {
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.status-table tbody tr:hover {
+  background: #f8fbff;
+}
