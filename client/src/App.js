@@ -29,7 +29,8 @@ export default function App() {
 
   async function handleLogin(username, password) {
     await login(username, password);
-    setAuthenticated(true);
+    const me = await getMe();
+    setAuthenticated(!!me.authenticated);
   }
 
   async function handleLogout() {

@@ -10,26 +10,44 @@ const store = require("./inventoryStore");
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:30000",
-    "https://peaceful-starburst-c51e22.netlify.app",
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin(origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:30000",
+        "https://peaceful-starburst-c51e22.netlify.app",
+        "https://agent-69ad92596348a99--peaceful-starburst-c51e22.netlify.app",
+      ];
+
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
+app.set("trust proxy", 1); // trust first proxy for secure cookies when behind a proxy
 
 app.use(
   session({
-    secret: "inventory-admin-secret-change-this",
+    name: "blueshelf.sid",
+    secret: process.env.SESSION_SECRET || "inventory-admin-secret-change-this",
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: "none",
+      secure: true,
       maxAge: 1000 * 60 * 60 * 8,
     },
   })
@@ -67,12 +85,19 @@ app.post("/api/login", (req, res) => {
   const username = String(req.body.username || "");
   const password = String(req.body.password || "");
 
-  if (username === "admin" && password === "admin") {
-    req.session.user = "admin";
-    return res.json({ authenticated: true, user: "admin" });
+  if (username !== "admin" || password !== "admin") {
+    return res.status(401).send("Invalid username or password");
   }
 
-  return res.status(401).send("Invalid username or password");
+  req.session.user = "admin";
+
+  req.session.save((err) => {
+    if (err) {
+      return res.status(500).send("Failed to save session");
+    }
+
+    return res.json({ authenticated: true, user: "admin" });
+  });
 });
 
 app.post("/api/logout", (req, res) => {
