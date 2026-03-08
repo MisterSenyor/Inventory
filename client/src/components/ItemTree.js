@@ -52,11 +52,7 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
                   <span className="meta-badge">מזהה {item.id}</span>
                   <span className="meta-badge">{item.type || "ללא סוג"}</span>
                   <span className="meta-badge">{item.class || "ללא קטגוריה"}</span>
-                  {isMissing && (
-                    <span className="meta-badge loaned">
-                      חסר
-                    </span>
-                  )}
+                  {isMissing && <span className="meta-badge loaned">חסר</span>}
                 </div>
               </div>
             </div>
@@ -115,22 +111,24 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
 export default function ItemTree({ items, allItems, onEdit }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
 
-  const safeItems = Array.isArray(items) ? items : [];
-  const safeAllItems = Array.isArray(allItems) ? allItems : [];
-
   const allItemsByParent = useMemo(() => {
+    const normalizedAllItems = Array.isArray(allItems) ? allItems : [];
     const map = {};
-    for (const item of safeAllItems) {
+
+    for (const item of normalizedAllItems) {
       const key = item.parentId || "root";
       if (!map[key]) {
         map[key] = [];
       }
       map[key].push(item);
     }
-    return map;
-  }, [safeAllItems]);
 
-  const rootItems = safeItems;
+    return map;
+  }, [allItems]);
+
+  const rootItems = useMemo(() => {
+    return Array.isArray(items) ? items : [];
+  }, [items]);
 
   if (rootItems.length === 0) {
     return <div className="empty-state">לא נמצאו פריטים זמינים.</div>;

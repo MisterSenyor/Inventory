@@ -95,12 +95,12 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
 
 export default function BorrowedTree({ items = [], onReturnTree }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
-  const safeItems = Array.isArray(items) ? items : [];
 
   const itemsByParent = useMemo(() => {
+    const normalizedItems = Array.isArray(items) ? items : [];
     const map = {};
 
-    for (const item of safeItems) {
+    for (const item of normalizedItems) {
       const key = item.parentId || "root";
       if (!map[key]) {
         map[key] = [];
@@ -109,16 +109,19 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
     }
 
     return map;
-  }, [safeItems]);
+  }, [items]);
 
-  const itemIds = new Set(safeItems.map((item) => String(item.id)));
+  const rootItems = useMemo(() => {
+    const normalizedItems = Array.isArray(items) ? items : [];
+    const itemIds = new Set(normalizedItems.map((item) => String(item.id)));
 
-  const rootItems = safeItems.filter((item) => {
-    if (!item.parentId) {
-      return true;
-    }
-    return !itemIds.has(String(item.parentId));
-  });
+    return normalizedItems.filter((item) => {
+      if (!item.parentId) {
+        return true;
+      }
+      return !itemIds.has(String(item.parentId));
+    });
+  }, [items]);
 
   if (rootItems.length === 0) {
     return <div className="empty-state">לא נמצאו פריטים מושאלים.</div>;
