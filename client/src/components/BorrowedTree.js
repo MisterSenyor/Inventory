@@ -99,8 +99,9 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
 
   const itemsByParent = useMemo(() => {
     const map = {};
+    const list = Array.isArray(items) ? items : [];
 
-    for (const item of safeItems) {
+    for (const item of list) {
       const key = item.parentId || "root";
       if (!map[key]) {
         map[key] = [];
@@ -109,7 +110,7 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
     }
 
     return map;
-  }, [safeItems]);
+  }, [items]);
 
   const itemIds = new Set(safeItems.map((item) => String(item.id)));
 
