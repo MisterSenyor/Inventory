@@ -13,11 +13,12 @@ export default function ImageLightbox({ open, src, alt, onClose }) {
           type="button"
           className="image-lightbox-close"
           onClick={onClose}
+          aria-label="סגור"
         >
           ×
         </button>
 
-        <img className="image-lightbox-image" src={src} alt={alt || "Item"} />
+        <img className="image-lightbox-image" src={src} alt={alt || "פריט"} />
       </div>
     </div>
   );

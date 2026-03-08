@@ -64,7 +64,7 @@ export default function ParentSelector({
 
   return (
     <div>
-      <label className="label">Parent item</label>
+      <label className="label">פריט אב</label>
 
       <div className="autocomplete-wrap" ref={wrapperRef}>
         <input
@@ -84,7 +84,7 @@ export default function ParentSelector({
             }
           }}
           onFocus={() => setOpen(true)}
-          placeholder="Search parent item by name"
+          placeholder="חפש פריט אב לפי שם"
         />
 
         {open && suggestions.length > 0 && (
@@ -110,7 +110,7 @@ export default function ParentSelector({
             className="btn btn-secondary btn-small"
             onClick={clearSelection}
           >
-            Clear parent
+            נקה בחירה
           </button>
         </div>
       )}

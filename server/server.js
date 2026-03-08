@@ -11,7 +11,24 @@ const store = require("./inventoryStore");
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:30000",
+      "http://10.0.0.10:3000",
+      "http://10.0.0.10:30000",
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 }));
 
@@ -205,6 +222,6 @@ app.delete("/api/config/types/:name", requireAuth, (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(5000, "0.0.0.0", () => {
   console.log("API running on http://localhost:5000");
 });

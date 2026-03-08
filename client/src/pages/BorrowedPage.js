@@ -17,7 +17,7 @@ export default function BorrowedPage() {
       const loadedArray = Array.isArray(loaded) ? loaded : [];
       setItems(loadedArray.filter((item) => item.loanedTo));
     } catch (err) {
-      setError(err.message || "Failed to load borrowed items");
+      setError(err.message || "טעינת הפריטים המושאלים נכשלה");
       setItems([]);
     } finally {
       setLoading(false);
@@ -45,15 +45,15 @@ export default function BorrowedPage() {
   }, [items, friend, search]);
 
   if (loading) {
-    return <div className="empty-state">Loading borrowed items...</div>;
+    return <div className="empty-state">טוען פריטים מושאלים...</div>;
   }
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Borrowed Items</h1>
+        <h1 className="page-title">פריטים מושאלים</h1>
         <div className="page-subtitle">
-          Track borrowed items and return full item trees.
+          מעקב אחר פריטים מושאלים והחזרה של פריט בודד.
         </div>
       </div>
 
@@ -63,20 +63,20 @@ export default function BorrowedPage() {
         <div className="card-body">
           <div className="toolbar">
             <div style={{ minWidth: 230 }}>
-              <label className="label">User ID</label>
+              <label className="label">מזהה שואל</label>
               <input
                 className="input"
-                placeholder="Filter by borrower"
+                placeholder="סינון לפי שואל"
                 value={friend}
                 onChange={(e) => setFriend(e.target.value)}
               />
             </div>
 
             <div style={{ minWidth: 230 }}>
-              <label className="label">Item name</label>
+              <label className="label">שם פריט</label>
               <input
                 className="input"
-                placeholder="Filter by item name"
+                placeholder="סינון לפי שם פריט"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />

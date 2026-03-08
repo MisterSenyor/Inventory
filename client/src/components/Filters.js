@@ -10,9 +10,9 @@ function renderFilterInput(fieldDef, value, onChange) {
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">Any</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
+        <option value="">הכול</option>
+        <option value="true">כן</option>
+        <option value="false">לא</option>
       </select>
     );
   }
@@ -22,7 +22,7 @@ function renderFilterInput(fieldDef, value, onChange) {
       className="input"
       type={fieldType === "number" ? "number" : fieldType === "date" ? "date" : "text"}
       value={value || ""}
-      placeholder={`Filter by ${fieldDef.label || fieldDef.name}`}
+      placeholder={`סינון לפי ${fieldDef.label || fieldDef.name}`}
       onChange={(e) => onChange(e.target.value.toLowerCase())}
     />
   );
@@ -46,15 +46,15 @@ export default function Filters({ config, setFilters }) {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Filter Available Items</h3>
+        <h3 className="card-title">סינון פריטים זמינים</h3>
       </div>
 
       <div className="card-body form-grid">
         <div>
-          <label className="label">Search item name</label>
+          <label className="label">חיפוש לפי שם פריט</label>
           <input
             className="input"
-            placeholder="Search by item name"
+            placeholder="חפש לפי שם פריט"
             value={search}
             onChange={(e) => {
               const newSearch = e.target.value.toLowerCase();
@@ -65,7 +65,7 @@ export default function Filters({ config, setFilters }) {
         </div>
 
         <div>
-          <label className="label">Classes</label>
+          <label className="label">קטגוריות</label>
           <div className="checkbox-group">
             {config.classes.map((c) => (
               <label key={c} className="checkbox-pill">
@@ -92,7 +92,7 @@ export default function Filters({ config, setFilters }) {
         </div>
 
         <div>
-          <label className="label">Type</label>
+          <label className="label">סוג</label>
           <select
             className="select"
             value={type}
@@ -108,7 +108,7 @@ export default function Filters({ config, setFilters }) {
               });
             }}
           >
-            <option value="">All types</option>
+            <option value="">כל הסוגים</option>
             {Object.keys(config.types).map((t) => (
               <option key={t} value={t}>
                 {t}

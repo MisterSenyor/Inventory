@@ -19,15 +19,15 @@ export default function AddItemPage() {
   }
 
   if (!config) {
-    return <div className="empty-state">Loading add-item form...</div>;
+    return <div className="empty-state">טוען טופס הוספה...</div>;
   }
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Add Item</h1>
+        <h1 className="page-title">הוספת פריט</h1>
         <div className="page-subtitle">
-          Create a new item, attach an image, and place it in the hierarchy.
+          יצירת פריט חדש, צירוף תמונה והכנסה להיררכיית הפריטים.
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export default function AddItemPage() {
           items={items}
           onAdd={async (data) => {
             await addItem(data);
-            setSuccess("Item added successfully.");
+            setSuccess("הפריט נוסף בהצלחה.");
             await load();
           }}
         />

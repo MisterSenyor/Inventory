@@ -19,25 +19,41 @@
 * {
   box-sizing: border-box;
 }
+@font-face {
+  font-family: 'Gisha';
+  src: local('Gisha'), 
+       url('./Alef-Bold.ttf') format('truetype'); /* Adjust path accordingly */
+  font-weight: normal;
+  font-style: normal;
+}
 
 html,
 body,
 #root {
   margin: 0;
   min-height: 100%;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: "Gisha", Arial, Helvetica, sans-serif;
   background: var(--bg);
   color: var(--text);
+  direction: rtl;
 }
 
 body {
   line-height: 1.45;
+  text-align: right;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+input,
+select,
+textarea {
+  text-align: right;
 }
 
 button {
@@ -46,6 +62,7 @@ button {
 
 .app-shell {
   display: flex;
+  flex-direction: row-reverse;
   min-height: 100vh;
 }
 
@@ -54,7 +71,7 @@ button {
   background: linear-gradient(180deg, #0f4d96 0%, #1666c5 100%);
   color: white;
   padding: 28px 20px;
-  box-shadow: 6px 0 30px rgba(0, 0, 0, 0.08);
+  box-shadow: -6px 0 30px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar-brand {
@@ -83,7 +100,7 @@ button {
   color: white;
   padding: 12px 14px;
   border-radius: 12px;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   font-weight: 600;
 }
@@ -272,6 +289,12 @@ button {
   box-shadow: var(--shadow);
 }
 
+.tree-node-missing {
+  opacity: 0.82;
+  border-style: dashed;
+  background: #f8fbff;
+}
+
 .tree-node-inner {
   padding: 16px 18px;
 }
@@ -362,9 +385,9 @@ button {
 }
 
 .indented {
-  margin-left: 26px;
-  border-left: 2px solid #dbeafb;
-  padding-left: 14px;
+  margin-right: 26px;
+  border-right: 2px solid #dbeafb;
+  padding-right: 14px;
 }
 
 .modal-overlay {
@@ -412,8 +435,8 @@ button {
 .autocomplete-list {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
   right: 0;
+  left: 0;
   background: white;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -430,7 +453,7 @@ button {
   border: none;
   border-bottom: 1px solid #edf4fb;
   padding: 10px 12px;
-  text-align: left;
+  text-align: right;
   cursor: pointer;
   color: var(--text);
 }
@@ -448,40 +471,14 @@ button {
   color: var(--muted);
 }
 
-@media (max-width: 980px) {
-  .grid-two {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    width: 210px;
-  }
+.missing-label {
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c97900;
 }
 
-@media (max-width: 760px) {
-  .app-shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: auto;
-    border-radius: 0 0 18px 18px;
-  }
-
-  .main-content {
-    padding: 18px;
-  }
-
-  .tree-node-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .indented {
-    margin-left: 12px;
-    padding-left: 10px;
-  }
-}
 .item-thumb {
   width: 58px;
   height: 58px;
@@ -491,6 +488,7 @@ button {
   background: #eef5fc;
   flex-shrink: 0;
 }
+
 .item-thumb-clickable {
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -533,7 +531,7 @@ button {
 .image-lightbox-close {
   position: absolute;
   top: -14px;
-  right: -14px;
+  left: -14px;
   width: 40px;
   height: 40px;
   border: none;
@@ -545,6 +543,7 @@ button {
   cursor: pointer;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
 }
+
 .login-shell {
   min-height: 100vh;
   display: flex;
@@ -563,16 +562,42 @@ button {
   box-shadow: 0 20px 60px rgba(16, 49, 84, 0.14);
   padding: 28px;
 }
-.tree-node-missing {
-  opacity: 0.82;
-  border-style: dashed;
-  background: #f8fbff;
+
+@media (max-width: 980px) {
+  .grid-two {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    width: 210px;
+  }
 }
 
-.missing-label {
-  display: inline-block;
-  margin-left: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #c97900;
+@media (max-width: 760px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: auto;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .main-content {
+    padding: 18px;
+  }
+
+  .grid-two {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tree-node-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .indented {
+    margin-right: 12px;
+    padding-right: 10px;
+  }
 }

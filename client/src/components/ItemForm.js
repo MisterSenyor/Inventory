@@ -12,9 +12,9 @@ function renderFieldInput(fieldDef, value, onChange) {
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">Select</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
+        <option value="">בחר</option>
+        <option value="true">כן</option>
+        <option value="false">לא</option>
       </select>
     );
   }
@@ -83,22 +83,22 @@ export default function ItemForm({ config, items, onAdd }) {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Add New Item</h3>
+        <h3 className="card-title">הוספת פריט חדש</h3>
       </div>
 
       <div className="card-body form-grid">
         <div>
-          <label className="label">Item name</label>
+          <label className="label">שם הפריט</label>
           <input
             className="input"
-            placeholder="Enter item name"
+            placeholder="הכנס שם פריט"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="label">Upload image</label>
+          <label className="label">העלאת תמונה</label>
           <input
             className="input"
             type="file"
@@ -108,7 +108,7 @@ export default function ItemForm({ config, items, onAdd }) {
         </div>
 
         <div>
-          <label className="label">Item type</label>
+          <label className="label">סוג פריט</label>
           <select
             className="select"
             value={type}
@@ -117,7 +117,7 @@ export default function ItemForm({ config, items, onAdd }) {
               setFields({});
             }}
           >
-            <option value="">Select type</option>
+            <option value="">בחר סוג</option>
             {Object.keys(config.types).map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -127,13 +127,13 @@ export default function ItemForm({ config, items, onAdd }) {
         </div>
 
         <div>
-          <label className="label">Item class</label>
+          <label className="label">קטגוריית פריט</label>
           <select
             className="select"
             value={cls}
             onChange={(e) => setCls(e.target.value)}
           >
-            <option value="">Select class</option>
+            <option value="">בחר קטגוריה</option>
             {config.classes.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -160,7 +160,7 @@ export default function ItemForm({ config, items, onAdd }) {
             onClick={handleAdd}
             disabled={adding}
           >
-            {adding ? "Adding..." : "Add Item"}
+            {adding ? "מוסיף..." : "הוסף פריט"}
           </button>
         </div>
       </div>

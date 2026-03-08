@@ -12,9 +12,9 @@ function renderFieldInput(fieldDef, value, onChange) {
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">Select</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
+        <option value="">בחר</option>
+        <option value="true">כן</option>
+        <option value="false">לא</option>
       </select>
     );
   }
@@ -110,7 +110,7 @@ export default function EditItemModal({
         loanedTo: item.loanedTo ?? null,
       });
     } catch (err) {
-      setError(err.message || "Failed to save item");
+      setError(err.message || "שמירת הפריט נכשלה");
       setSaving(false);
     }
   }
@@ -121,7 +121,7 @@ export default function EditItemModal({
       setError("");
       await onLoanTree(item.id, loanUserId.trim());
     } catch (err) {
-      setError(err.message || "Failed to loan item tree");
+      setError(err.message || "השאלת הפריט נכשלה");
       setLoaning(false);
     }
   }
@@ -132,14 +132,14 @@ export default function EditItemModal({
       setError("");
       await onReturnTree(item.id);
     } catch (err) {
-      setError(err.message || "Failed to return item tree");
+      setError(err.message || "החזרת הפריט נכשלה");
       setReturning(false);
     }
   }
 
   async function handleRemove() {
     const confirmed = window.confirm(
-      `Remove "${item.name}"? Children will remain and become top-level items.`
+      `למחוק את "${item.name}"? פריטי הילדים יישארו ויהפכו לפריטי שורש.`
     );
 
     if (!confirmed) {
@@ -151,7 +151,7 @@ export default function EditItemModal({
       setError("");
       await onRemove(item.id);
     } catch (err) {
-      setError(err.message || "Failed to remove item");
+      setError(err.message || "מחיקת הפריט נכשלה");
       setRemoving(false);
     }
   }
@@ -166,23 +166,23 @@ export default function EditItemModal({
       }}
     >
       <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-title">Edit Item</h3>
+        <h3 className="modal-title">עריכת פריט</h3>
 
         {error && <div className="notice-error">{error}</div>}
 
         <div className="form-grid">
           <div>
-            <label className="label">Name</label>
+            <label className="label">שם</label>
             <input
               className="input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
+              placeholder="שם"
             />
           </div>
 
           <div>
-            <label className="label">Upload new image</label>
+            <label className="label">העלאת תמונה חדשה</label>
             <input
               className="input"
               type="file"
@@ -192,7 +192,7 @@ export default function EditItemModal({
           </div>
 
           <div>
-            <label className="label">Type</label>
+            <label className="label">סוג</label>
             <select
               className="select"
               value={type}
@@ -201,7 +201,7 @@ export default function EditItemModal({
                 setFields({});
               }}
             >
-              <option value="">Type</option>
+              <option value="">בחר סוג</option>
               {Object.keys(config.types || {}).map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -211,13 +211,13 @@ export default function EditItemModal({
           </div>
 
           <div>
-            <label className="label">Class</label>
+            <label className="label">קטגוריה</label>
             <select
               className="select"
               value={cls}
               onChange={(e) => setCls(e.target.value)}
             >
-              <option value="">Class</option>
+              <option value="">בחר קטגוריה</option>
               {(config.classes || []).map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -247,16 +247,16 @@ export default function EditItemModal({
 
           <div className="card" style={{ boxShadow: "none" }}>
             <div className="card-header">
-              <h4 className="card-title">Lending</h4>
+              <h4 className="card-title">השאלה</h4>
             </div>
             <div className="card-body form-grid">
               <div>
-                <label className="label">User ID</label>
+                <label className="label">מזהה שואל</label>
                 <input
                   className="input"
                   value={loanUserId}
                   onChange={(e) => setLoanUserId(e.target.value)}
-                  placeholder="Enter user ID"
+                  placeholder="הכנס מזהה שואל"
                 />
               </div>
 
@@ -267,7 +267,7 @@ export default function EditItemModal({
                   disabled={busy || !loanUserId.trim()}
                   onClick={handleLoanTree}
                 >
-                  {loaning ? "Lending..." : "Lend item + children"}
+                  {loaning ? "משאיל..." : "השאל פריט + ילדים"}
                 </button>
 
                 <button
@@ -276,7 +276,7 @@ export default function EditItemModal({
                   disabled={busy}
                   onClick={handleReturnTree}
                 >
-                  {returning ? "Returning..." : "Return item + children"}
+                  {returning ? "מחזיר..." : "החזר פריט + ילדים"}
                 </button>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function EditItemModal({
               disabled={busy}
               onClick={handleRemove}
             >
-              {removing ? "Removing..." : "Remove"}
+              {removing ? "מוחק..." : "מחק"}
             </button>
 
             <div className="toolbar">
@@ -302,7 +302,7 @@ export default function EditItemModal({
                 disabled={busy}
                 onClick={handleSave}
               >
-                {saving ? "Saving..." : "Save"}
+                {saving ? "שומר..." : "שמור"}
               </button>
 
               <button
@@ -311,7 +311,7 @@ export default function EditItemModal({
                 disabled={busy}
                 onClick={onClose}
               >
-                Cancel
+                ביטול
               </button>
             </div>
           </div>

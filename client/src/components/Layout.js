@@ -2,9 +2,9 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="sidebar-brand">BlueShelf</div>
+        <div className="sidebar-brand">טקסטילון</div>
         <div className="sidebar-subtitle">
-          Inventory and lending management
+          ניהול מלאי והשאלות
         </div>
 
         <nav className="sidebar-nav">
@@ -12,34 +12,34 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
             className={`sidebar-button ${currentPanel === "items" ? "active" : ""}`}
             onClick={() => setPanel("items")}
           >
-            Inventory
+            מלאי
           </button>
 
           <button
             className={`sidebar-button ${currentPanel === "add" ? "active" : ""}`}
             onClick={() => setPanel("add")}
           >
-            Add Item
+            הוספת פריט
           </button>
 
           <button
             className={`sidebar-button ${currentPanel === "borrowed" ? "active" : ""}`}
             onClick={() => setPanel("borrowed")}
           >
-            Borrowed
+            מושאלים
           </button>
 
           <button
             className={`sidebar-button ${currentPanel === "settings" ? "active" : ""}`}
             onClick={() => setPanel("settings")}
           >
-            Settings
+            הגדרות
           </button>
         </nav>
 
         <div style={{ marginTop: 20 }}>
           <button className="sidebar-button" onClick={onLogout}>
-            Logout
+            התנתקות
           </button>
         </div>
       </aside>

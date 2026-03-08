@@ -40,11 +40,11 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
               <div>
                 <div className="tree-node-name">{item.name}</div>
                 <div className="tree-node-meta">
-                  <span className="meta-badge">ID {item.id}</span>
-                  <span className="meta-badge">{item.type || "No type"}</span>
-                  <span className="meta-badge">{item.class || "No class"}</span>
+                  <span className="meta-badge">מזהה {item.id}</span>
+                  <span className="meta-badge">{item.type || "ללא סוג"}</span>
+                  <span className="meta-badge">{item.class || "ללא קטגוריה"}</span>
                   <span className="meta-badge loaned">
-                    Loaned to {item.loanedTo}
+                    מושאל ל־{item.loanedTo}
                   </span>
                 </div>
               </div>
@@ -56,14 +56,14 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
                 className="btn btn-primary btn-small"
                 onClick={() => onReturnTree(item.id)}
               >
-                Return
+                החזר
               </button>
             </div>
           </div>
 
           <div className="field-list">
             <div className="field-row">
-              <strong>Parent ID:</strong> <span>{item.parentId || "-"}</span>
+              <strong>מזהה אב:</strong> <span>{item.parentId || "-"}</span>
             </div>
 
             {fieldEntries.map(([key, value]) => (
@@ -95,7 +95,7 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
 
 export default function BorrowedTree({ items = [], onReturnTree }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
-  let safeItems = Array.isArray(items) ? items : [];
+  const safeItems = Array.isArray(items) ? items : [];
 
   const itemsByParent = useMemo(() => {
     const map = {};
@@ -110,6 +110,7 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
 
     return map;
   }, [safeItems]);
+
   const itemIds = new Set(safeItems.map((item) => String(item.id)));
 
   const rootItems = safeItems.filter((item) => {
@@ -120,7 +121,7 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
   });
 
   if (rootItems.length === 0) {
-    return <div className="empty-state">No borrowed items found.</div>;
+    return <div className="empty-state">לא נמצאו פריטים מושאלים.</div>;
   }
 
   return (

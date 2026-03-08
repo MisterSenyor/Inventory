@@ -43,18 +43,18 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
                   {item.name}
                   {isMissing && (
                     <span className="missing-label">
-                      Missing · borrowed by {item.loanedTo}
+                      חסר · מושאל ל־{item.loanedTo}
                     </span>
                   )}
                 </div>
 
                 <div className="tree-node-meta">
-                  <span className="meta-badge">ID {item.id}</span>
-                  <span className="meta-badge">{item.type || "No type"}</span>
-                  <span className="meta-badge">{item.class || "No class"}</span>
+                  <span className="meta-badge">מזהה {item.id}</span>
+                  <span className="meta-badge">{item.type || "ללא סוג"}</span>
+                  <span className="meta-badge">{item.class || "ללא קטגוריה"}</span>
                   {isMissing && (
                     <span className="meta-badge loaned">
-                      Missing
+                      חסר
                     </span>
                   )}
                 </div>
@@ -68,7 +68,7 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
                   className="btn btn-secondary btn-small"
                   onClick={() => onEdit(item)}
                 >
-                  Edit
+                  עריכה
                 </button>
               )}
             </div>
@@ -76,12 +76,12 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
 
           <div className="field-list">
             <div className="field-row">
-              <strong>Parent ID:</strong> <span>{item.parentId || "-"}</span>
+              <strong>מזהה אב:</strong> <span>{item.parentId || "-"}</span>
             </div>
 
             {isMissing && (
               <div className="field-row">
-                <strong>Status:</strong> <span>Borrowed by {item.loanedTo}</span>
+                <strong>סטטוס:</strong> <span>מושאל ל־{item.loanedTo}</span>
               </div>
             )}
 
@@ -133,7 +133,7 @@ export default function ItemTree({ items, allItems, onEdit }) {
   const rootItems = safeItems;
 
   if (rootItems.length === 0) {
-    return <div className="empty-state">No available items found.</div>;
+    return <div className="empty-state">לא נמצאו פריטים זמינים.</div>;
   }
 
   return (

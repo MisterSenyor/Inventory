@@ -14,7 +14,7 @@ export default function LoginPage({ onLogin }) {
       setError("");
       await onLogin(username, password);
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message || "ההתחברות נכשלה");
       setLoading(false);
     }
   }
@@ -23,22 +23,22 @@ export default function LoginPage({ onLogin }) {
     <div className="login-shell">
       <div className="login-card">
         <div className="sidebar-brand" style={{ color: "#1666c5", marginBottom: 10 }}>
-          BlueShelf
+          טקסטילון
         </div>
 
         <h1 className="page-title" style={{ fontSize: 28, marginBottom: 8 }}>
-          Admin Login
+          התחברות מנהל
         </h1>
 
         <div className="page-subtitle" style={{ marginBottom: 20 }}>
-          Sign in to manage inventory and lending.
+          התחבר כדי לנהל את המלאי וההשאלות.
         </div>
 
         {error && <div className="notice-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="form-grid">
           <div>
-            <label className="label">Username</label>
+            <label className="label">שם משתמש</label>
             <input
               className="input"
               value={username}
@@ -48,7 +48,7 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <div>
-            <label className="label">Password</label>
+            <label className="label">סיסמה</label>
             <input
               className="input"
               type="password"
@@ -59,7 +59,7 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "מתחבר..." : "התחבר"}
           </button>
         </form>
       </div>

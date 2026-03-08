@@ -40,7 +40,7 @@ export default function ItemsPage() {
   }
 
   if (!config) {
-    return <div className="empty-state">Loading inventory...</div>;
+    return <div className="empty-state">טוען מלאי...</div>;
   }
 
   const availableItems = items.filter((item) => !item.loanedTo);
@@ -77,9 +77,9 @@ export default function ItemsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Inventory</h1>
+        <h1 className="page-title">מלאי</h1>
         <div className="page-subtitle">
-          View available items and see missing borrowed sub-items in context.
+          צפייה בפריטים הזמינים ובפריטי משנה חסרים בתוך ההיררכיה.
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export default function ItemsPage() {
 
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">Available Items</h3>
+            <h3 className="card-title">פריטים זמינים</h3>
           </div>
           <div className="card-body">
             <ItemTree

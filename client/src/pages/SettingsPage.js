@@ -9,6 +9,13 @@ import {
 
 const FIELD_TYPE_OPTIONS = ["text", "number", "date", "boolean"];
 
+const FIELD_TYPE_LABELS = {
+  text: "טקסט",
+  number: "מספר",
+  date: "תאריך",
+  boolean: "בוליאני",
+};
+
 export default function SettingsPage() {
   const [config, setConfig] = useState(null);
   const [className, setClassName] = useState("");
@@ -29,7 +36,7 @@ export default function SettingsPage() {
       setConfig(loaded);
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to load settings");
+      setError(err.message || "טעינת ההגדרות נכשלה");
     }
   }
 
@@ -45,7 +52,7 @@ export default function SettingsPage() {
       setClassName("");
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to add class");
+      setError(err.message || "הוספת הקטגוריה נכשלה");
     } finally {
       setBusy(false);
     }
@@ -58,7 +65,7 @@ export default function SettingsPage() {
       setConfig(updated);
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to remove class");
+      setError(err.message || "מחיקת הקטגוריה נכשלה");
     } finally {
       setBusy(false);
     }
@@ -101,7 +108,7 @@ export default function SettingsPage() {
       setFields([{ name: "", label: "", type: "text" }]);
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to add type");
+      setError(err.message || "הוספת הסוג נכשלה");
     } finally {
       setBusy(false);
     }
@@ -114,22 +121,22 @@ export default function SettingsPage() {
       setConfig(updated);
       setError("");
     } catch (err) {
-      setError(err.message || "Failed to remove type");
+      setError(err.message || "מחיקת הסוג נכשלה");
     } finally {
       setBusy(false);
     }
   }
 
   if (!config) {
-    return <div className="empty-state">Loading settings...</div>;
+    return <div className="empty-state">טוען הגדרות...</div>;
   }
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Settings</h1>
+        <h1 className="page-title">הגדרות</h1>
         <div className="page-subtitle">
-          Manage item classes and item types with custom fields.
+          ניהול קטגוריות וסוגי פריטים עם שדות מותאמים אישית.
         </div>
       </div>
 
@@ -139,16 +146,16 @@ export default function SettingsPage() {
         <div className="section-stack">
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">Classes</h3>
+              <h3 className="card-title">קטגוריות</h3>
             </div>
             <div className="card-body form-grid">
               <div>
-                <label className="label">New class name</label>
+                <label className="label">שם קטגוריה חדשה</label>
                 <input
                   className="input"
                   value={className}
                   onChange={(e) => setClassName(e.target.value)}
-                  placeholder="Example: Personal, Office, Electronics"
+                  placeholder="למשל: אישי, משרד, אלקטרוניקה"
                 />
               </div>
 
@@ -159,13 +166,13 @@ export default function SettingsPage() {
                   disabled={busy}
                   onClick={handleAddClass}
                 >
-                  Add Class
+                  הוסף קטגוריה
                 </button>
               </div>
 
               <div className="field-list">
                 {config.classes.length === 0 ? (
-                  <div className="empty-state">No classes defined yet.</div>
+                  <div className="empty-state">עדיין אין קטגוריות.</div>
                 ) : (
                   config.classes.map((cls) => (
                     <div
@@ -182,7 +189,7 @@ export default function SettingsPage() {
                             disabled={busy}
                             onClick={() => handleRemoveClass(cls)}
                           >
-                            Remove
+                            מחק
                           </button>
                         </div>
                       </div>
@@ -195,21 +202,21 @@ export default function SettingsPage() {
 
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">Types</h3>
+              <h3 className="card-title">סוגי פריטים</h3>
             </div>
             <div className="card-body form-grid">
               <div>
-                <label className="label">New type name</label>
+                <label className="label">שם סוג חדש</label>
                 <input
                   className="input"
                   value={typeName}
                   onChange={(e) => setTypeName(e.target.value)}
-                  placeholder="Example: Laptop, Book, Camera"
+                  placeholder="למשל: מחשב נייד, ספר, מצלמה"
                 />
               </div>
 
               <div>
-                <label className="label">Custom fields</label>
+                <label className="label">שדות מותאמים אישית</label>
                 <div className="section-stack">
                   {fields.map((field, index) => (
                     <div
@@ -220,7 +227,7 @@ export default function SettingsPage() {
                       <div className="card-body">
                         <div className="form-grid">
                           <div>
-                            <label className="label">Field name</label>
+                            <label className="label">שם שדה פנימי</label>
                             <input
                               className="input"
                               value={field.name}
@@ -232,19 +239,19 @@ export default function SettingsPage() {
                           </div>
 
                           <div>
-                            <label className="label">Field label</label>
+                            <label className="label">תווית שדה</label>
                             <input
                               className="input"
                               value={field.label}
                               onChange={(e) =>
                                 updateField(index, "label", e.target.value)
                               }
-                              placeholder="Serial Number"
+                              placeholder="מספר סידורי"
                             />
                           </div>
 
                           <div>
-                            <label className="label">Field type</label>
+                            <label className="label">סוג שדה</label>
                             <select
                               className="select"
                               value={field.type}
@@ -254,7 +261,7 @@ export default function SettingsPage() {
                             >
                               {FIELD_TYPE_OPTIONS.map((option) => (
                                 <option key={option} value={option}>
-                                  {option}
+                                  {FIELD_TYPE_LABELS[option]}
                                 </option>
                               ))}
                             </select>
@@ -267,7 +274,7 @@ export default function SettingsPage() {
                               onClick={() => removeFieldRow(index)}
                               disabled={busy || fields.length === 1}
                             >
-                              Remove Field
+                              מחק שדה
                             </button>
                           </div>
                         </div>
@@ -282,7 +289,7 @@ export default function SettingsPage() {
                       onClick={addFieldRow}
                       disabled={busy}
                     >
-                      Add Another Field
+                      הוסף שדה נוסף
                     </button>
 
                     <button
@@ -291,7 +298,7 @@ export default function SettingsPage() {
                       onClick={handleAddType}
                       disabled={busy}
                     >
-                      Add Type
+                      הוסף סוג
                     </button>
                   </div>
                 </div>
@@ -303,11 +310,11 @@ export default function SettingsPage() {
         <div className="section-stack">
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">Existing Types</h3>
+              <h3 className="card-title">סוגים קיימים</h3>
             </div>
             <div className="card-body">
               {Object.keys(config.types).length === 0 ? (
-                <div className="empty-state">No types defined yet.</div>
+                <div className="empty-state">עדיין אין סוגים.</div>
               ) : (
                 <div className="section-stack">
                   {Object.entries(config.types).map(([typeName, typeDef]) => (
@@ -317,8 +324,7 @@ export default function SettingsPage() {
                           <div>
                             <div className="tree-node-name">{typeName}</div>
                             <div className="page-subtitle" style={{ marginTop: 6 }}>
-                              {(typeDef.fields || []).length} custom field
-                              {(typeDef.fields || []).length === 1 ? "" : "s"}
+                              {(typeDef.fields || []).length} שדות מותאמים אישית
                             </div>
                           </div>
 
@@ -328,21 +334,21 @@ export default function SettingsPage() {
                             disabled={busy}
                             onClick={() => handleRemoveType(typeName)}
                           >
-                            Remove
+                            מחק
                           </button>
                         </div>
 
                         <div className="field-list">
                           {(typeDef.fields || []).length === 0 ? (
                             <div className="field-row">
-                              <span>No custom fields.</span>
+                              <span>אין שדות מותאמים אישית.</span>
                             </div>
                           ) : (
                             typeDef.fields.map((field) => (
                               <div key={field.name} className="field-row">
                                 <strong>{field.label || field.name}</strong>
-                                <span>name: {field.name}</span>
-                                <span>type: {field.type || "text"}</span>
+                                <span>שם: {field.name}</span>
+                                <span>סוג: {FIELD_TYPE_LABELS[field.type] || field.type}</span>
                               </div>
                             ))
                           )}
