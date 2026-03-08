@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+function getItemExternalId(item) {
+  return item?.fields?.id ?? item?.fields?.ID ?? "";
+}
+
+function getParentDisplayText(item) {
+  const externalId = getItemExternalId(item);
+  if (externalId) {
+    return `${item.name} (מזהה: ${externalId})`;
+  }
+  return item.name;
+}
+
 export default function ParentSelector({
   items,
   value,
@@ -18,7 +30,7 @@ export default function ParentSelector({
   }, [items, value]);
 
   useEffect(() => {
-    setQuery(selectedItem ? selectedItem.name : "");
+    setQuery(selectedItem ? getParentDisplayText(selectedItem) : "");
   }, [selectedItem]);
 
   useEffect(() => {
@@ -46,13 +58,21 @@ export default function ParentSelector({
         return true;
       }
 
-      return item.name.toLowerCase().includes(q);
+      const externalId = String(getItemExternalId(item)).toLowerCase();
+      const itemName = String(item.name || "").toLowerCase();
+      const combined = `${itemName} ${externalId}`.trim();
+
+      return (
+        itemName.includes(q) ||
+        externalId.includes(q) ||
+        combined.includes(q)
+      );
     });
   }, [items, query, excludeId]);
 
   function chooseItem(item) {
     onChange(item.id);
-    setQuery(item.name);
+    setQuery(getParentDisplayText(item));
     setOpen(false);
   }
 
@@ -71,20 +91,22 @@ export default function ParentSelector({
           className="input"
           value={query}
           onChange={(e) => {
-            setQuery(e.target.value);
+            const nextValue = e.target.value;
+            setQuery(nextValue);
             setOpen(true);
 
-            if (!e.target.value.trim()) {
+            if (!nextValue.trim()) {
               onChange(null);
             } else if (
               selectedItem &&
-              selectedItem.name.toLowerCase() !== e.target.value.trim().toLowerCase()
+              getParentDisplayText(selectedItem).toLowerCase() !==
+                nextValue.trim().toLowerCase()
             ) {
               onChange(null);
             }
           }}
           onFocus={() => setOpen(true)}
-          placeholder="חפש פריט אב לפי שם"
+          placeholder="חפש פריט אב לפי שם + מזהה"
         />
 
         {open && suggestions.length > 0 && (
@@ -96,7 +118,7 @@ export default function ParentSelector({
                 className="autocomplete-item"
                 onClick={() => chooseItem(item)}
               >
-                {item.name}
+                {getParentDisplayText(item)}
               </button>
             ))}
           </div>
