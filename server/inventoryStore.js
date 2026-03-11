@@ -1,50 +1,101 @@
-const fs = require("fs");
-const path = require("path");
+const { Pool } = require("pg");
 
-const inventoryPath = path.join(__dirname, "inventory.json");
-const configPath = path.join(__dirname, "config.json");
-const uploadsDir = path.join(__dirname, "uploads");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
-function readJSON(filePath, fallback) {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2));
-    return fallback;
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS items (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL DEFAULT '',
+      type TEXT NOT NULL DEFAULT '',
+      class_name TEXT NOT NULL DEFAULT '',
+      fields_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      parent_id TEXT,
+      loaned_to TEXT,
+      image_url TEXT NOT NULL DEFAULT ''
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS classes (
+      name TEXT PRIMARY KEY
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS types (
+      name TEXT PRIMARY KEY,
+      fields_json JSONB NOT NULL DEFAULT '[]'::jsonb
+    );
+  `);
+}
+
+async function getItems() {
+  const result = await pool.query(`
+    SELECT
+      id,
+      name,
+      type,
+      class_name,
+      fields_json,
+      parent_id,
+      loaned_to,
+      image_url
+    FROM items
+    ORDER BY id
+  `);
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    class: row.class_name,
+    fields: row.fields_json || {},
+    parentId: row.parent_id,
+    loanedTo: row.loaned_to,
+    imageUrl: row.image_url || "",
+  }));
+}
+
+async function getConfig() {
+  const classesResult = await pool.query(`
+    SELECT name
+    FROM classes
+    ORDER BY name
+  `);
+
+  const typesResult = await pool.query(`
+    SELECT name, fields_json
+    FROM types
+    ORDER BY name
+  `);
+
+  const types = {};
+  for (const row of typesResult.rows) {
+    types[row.name] = {
+      fields: row.fields_json || [],
+    };
   }
 
-  const raw = fs.readFileSync(filePath, "utf8");
-  if (!raw.trim()) {
-    fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2));
-    return fallback;
-  }
-
-  return JSON.parse(raw);
+  return {
+    classes: classesResult.rows.map((r) => r.name),
+    types,
+  };
 }
 
-function writeJSON(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
+async function generateId() {
+  const result = await pool.query(`
+    SELECT id
+    FROM items
+  `);
 
-function getItems() {
-  return readJSON(inventoryPath, []);
-}
-
-function saveItems(items) {
-  writeJSON(inventoryPath, items);
-}
-
-function getConfig() {
-  return readJSON(configPath, { classes: [], types: {} });
-}
-
-function saveConfig(config) {
-  writeJSON(configPath, config);
-}
-
-function generateId(items) {
   let maxId = 0;
 
-  for (const item of items) {
-    const num = Number(item.id);
+  for (const row of result.rows) {
+    const num = Number(row.id);
     if (!Number.isNaN(num) && num > maxId) {
       maxId = num;
     }
@@ -53,46 +104,12 @@ function generateId(items) {
   return String(maxId + 1);
 }
 
-function isManagedUpload(imageUrl) {
-  return typeof imageUrl === "string" && imageUrl.startsWith("/uploads/");
-}
-
-function imageUrlToPath(imageUrl) {
-  if (!isManagedUpload(imageUrl)) {
-    return null;
-  }
-
-  const fileName = path.basename(imageUrl);
-  return path.join(uploadsDir, fileName);
-}
-
-function deleteManagedImageIfUnused(imageUrl, items, ignoreItemId = null) {
-  if (!isManagedUpload(imageUrl)) {
-    return;
-  }
-
-  const stillUsed = items.some((item) => {
-    if (ignoreItemId !== null && String(item.id) === String(ignoreItemId)) {
-      return false;
-    }
-    return item.imageUrl === imageUrl;
-  });
-
-  if (stillUsed) {
-    return;
-  }
-
-  const fullPath = imageUrlToPath(imageUrl);
-  if (fullPath && fs.existsSync(fullPath)) {
-    fs.unlinkSync(fullPath);
-  }
-}
-
-function addItem(data) {
-  const items = getItems();
+async function addItem(data) {
+  const providedId = data.id ? String(data.id) : null;
+  const newId = providedId || (await generateId());
 
   const newItem = {
-    id: generateId(items),
+    id: newId,
     name: data.name || "",
     type: data.type || "",
     class: data.class || "",
@@ -102,73 +119,137 @@ function addItem(data) {
     imageUrl: data.imageUrl || "",
   };
 
-  items.push(newItem);
-  saveItems(items);
+  await pool.query(
+    `
+    INSERT INTO items (
+      id, name, type, class_name, fields_json, parent_id, loaned_to, image_url
+    )
+    VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8)
+    `,
+    [
+      newItem.id,
+      newItem.name,
+      newItem.type,
+      newItem.class,
+      JSON.stringify(newItem.fields),
+      newItem.parentId,
+      newItem.loanedTo,
+      newItem.imageUrl,
+    ]
+  );
+
   return newItem;
 }
 
-function editItem(id, updates) {
-  const items = getItems();
-  const index = items.findIndex((item) => String(item.id) === String(id));
+async function editItem(id, updates) {
+  const existingResult = await pool.query(
+    `
+    SELECT *
+    FROM items
+    WHERE id = $1
+    `,
+    [String(id)]
+  );
 
-  if (index === -1) {
+  if (existingResult.rowCount === 0) {
     throw new Error(`Item with id ${id} not found`);
   }
 
-  const current = items[index];
+  const current = existingResult.rows[0];
 
-  let nextParentId = current.parentId;
-  if (Object.prototype.hasOwnProperty.call(updates, "parentId")) {
-    nextParentId =
-      updates.parentId === "" || updates.parentId === null
-        ? null
-        : String(updates.parentId);
-  }
+  const nextParentId = Object.prototype.hasOwnProperty.call(updates, "parentId")
+    ? updates.parentId === "" || updates.parentId === null
+      ? null
+      : String(updates.parentId)
+    : current.parent_id;
 
   const nextImageUrl =
-    updates.imageUrl === undefined ? current.imageUrl : updates.imageUrl;
+    updates.imageUrl === undefined ? current.image_url : updates.imageUrl;
 
-  items[index] = {
-    ...current,
+  const nextItem = {
+    id: current.id,
     name: updates.name ?? current.name,
     type: updates.type ?? current.type,
-    class: updates.class ?? current.class,
-    fields: updates.fields ?? current.fields,
+    class: updates.class ?? current.class_name,
+    fields: updates.fields ?? current.fields_json,
     parentId: nextParentId,
+    loanedTo: updates.loanedTo === undefined ? current.loaned_to : updates.loanedTo,
     imageUrl: nextImageUrl,
-    loanedTo:
-      updates.loanedTo === undefined ? current.loanedTo : updates.loanedTo,
   };
 
-  if (current.imageUrl !== nextImageUrl) {
-    deleteManagedImageIfUnused(current.imageUrl, items, current.id);
-  }
+  await pool.query(
+    `
+    UPDATE items
+    SET
+      name = $2,
+      type = $3,
+      class_name = $4,
+      fields_json = $5::jsonb,
+      parent_id = $6,
+      loaned_to = $7,
+      image_url = $8
+    WHERE id = $1
+    `,
+    [
+      String(id),
+      nextItem.name,
+      nextItem.type,
+      nextItem.class,
+      JSON.stringify(nextItem.fields),
+      nextItem.parentId,
+      nextItem.loanedTo,
+      nextItem.imageUrl,
+    ]
+  );
 
-  saveItems(items);
-  return items[index];
+  return {
+    id: String(id),
+    name: nextItem.name,
+    type: nextItem.type,
+    class: nextItem.class,
+    fields: nextItem.fields,
+    parentId: nextItem.parentId,
+    loanedTo: nextItem.loanedTo,
+    imageUrl: nextItem.imageUrl,
+  };
 }
 
-function removeItem(id) {
-  const items = getItems();
-  const itemToRemove = items.find((item) => String(item.id) === String(id));
+async function removeItem(id) {
+  const itemId = String(id);
 
-  if (!itemToRemove) {
+  const existingResult = await pool.query(
+    `
+    SELECT id
+    FROM items
+    WHERE id = $1
+    `,
+    [itemId]
+  );
+
+  if (existingResult.rowCount === 0) {
     throw new Error(`Item with id ${id} not found`);
   }
 
-  const filtered = items
-    .filter((item) => String(item.id) !== String(id))
-    .map((item) => ({
-      ...item,
-      parentId: String(item.parentId) === String(id) ? null : item.parentId,
-    }));
+  await pool.query(
+    `
+    UPDATE items
+    SET parent_id = NULL
+    WHERE parent_id = $1
+    `,
+    [itemId]
+  );
 
-  deleteManagedImageIfUnused(itemToRemove.imageUrl, filtered, id);
-
-  saveItems(filtered);
+  await pool.query(
+    `
+    DELETE FROM items
+    WHERE id = $1
+    `,
+    [itemId]
+  );
 }
 
-function getDescendantIds(items, rootId) {
+async function getDescendantIds(rootId) {
+  const items = await getItems();
   const result = [];
   const stack = [String(rootId)];
 
@@ -186,108 +267,109 @@ function getDescendantIds(items, rootId) {
   return result;
 }
 
-function loanItem(id, friend) {
-  const items = getItems();
-  const item = items.find((x) => String(x.id) === String(id));
+async function loanItem(id, friend) {
+  const result = await pool.query(
+    `
+    UPDATE items
+    SET loaned_to = $2
+    WHERE id = $1
+    RETURNING id
+    `,
+    [String(id), friend || ""]
+  );
 
-  if (!item) {
+  if (result.rowCount === 0) {
+    throw new Error(`Item with id ${id} not found`);
+  }
+}
+
+async function loanItemWithChildren(id, friend) {
+  const ids = await getDescendantIds(id);
+
+  if (ids.length === 0) {
     throw new Error(`Item with id ${id} not found`);
   }
 
-  item.loanedTo = friend || "";
-  saveItems(items);
+  await pool.query(
+    `
+    UPDATE items
+    SET loaned_to = $2
+    WHERE id = ANY($1::text[])
+      AND (loaned_to IS NULL OR loaned_to = '')
+    `,
+    [ids, friend || ""]
+  );
 }
 
-function loanItemWithChildren(id, friend) {
-  const items = getItems();
-  const ids = new Set(getDescendantIds(items, id));
+async function returnItem(id) {
+  const result = await pool.query(
+    `
+    UPDATE items
+    SET loaned_to = NULL
+    WHERE id = $1
+    RETURNING id
+    `,
+    [String(id)]
+  );
 
-  let found = false;
-
-  for (const item of items) {
-    if (ids.has(String(item.id))) {
-      found = true;
-
-      if (!item.loanedTo) {
-        item.loanedTo = friend || "";
-      }
-    }
+  if (result.rowCount === 0) {
+    throw new Error(`Item with id ${id} not found`);
   }
+}
 
-  if (!found) {
+async function returnItemWithChildren(id) {
+  const ids = await getDescendantIds(id);
+
+  if (ids.length === 0) {
     throw new Error(`Item with id ${id} not found`);
   }
 
-  saveItems(items);
+  await pool.query(
+    `
+    UPDATE items
+    SET loaned_to = NULL
+    WHERE id = ANY($1::text[])
+    `,
+    [ids]
+  );
 }
 
-function returnItem(id) {
-  const items = getItems();
-  const item = items.find((x) => String(x.id) === String(id));
-
-  if (!item) {
-    throw new Error(`Item with id ${id} not found`);
-  }
-
-  item.loanedTo = null;
-  saveItems(items);
-}
-
-function returnItemWithChildren(id) {
-  const items = getItems();
-  const ids = new Set(getDescendantIds(items, id));
-
-  let found = false;
-
-  for (const item of items) {
-    if (ids.has(String(item.id))) {
-      item.loanedTo = null;
-      found = true;
-    }
-  }
-
-  if (!found) {
-    throw new Error(`Item with id ${id} not found`);
-  }
-
-  saveItems(items);
-}
-
-function addClass(className) {
-  const config = getConfig();
+async function addClass(className) {
   const trimmed = String(className || "").trim();
 
   if (!trimmed) {
     throw new Error("Class name is required");
   }
 
-  if (config.classes.includes(trimmed)) {
-    throw new Error("Class already exists");
-  }
+  await pool.query(
+    `
+    INSERT INTO classes (name)
+    VALUES ($1)
+    ON CONFLICT (name) DO NOTHING
+    `,
+    [trimmed]
+  );
 
-  config.classes.push(trimmed);
-  config.classes.sort((a, b) => a.localeCompare(b));
-  saveConfig(config);
-  return config;
+  return getConfig();
 }
 
-function removeClass(className) {
-  const config = getConfig();
-  config.classes = config.classes.filter((c) => c !== className);
-  saveConfig(config);
-  return config;
+async function removeClass(className) {
+  await pool.query(
+    `
+    DELETE FROM classes
+    WHERE name = $1
+    `,
+    [className]
+  );
+
+  return getConfig();
 }
 
-function addType(typeName, fields) {
-  const config = getConfig();
+async function addType(typeName, fields) {
   const trimmed = String(typeName || "").trim();
 
   if (!trimmed) {
     throw new Error("Type name is required");
-  }
-
-  if (config.types[trimmed]) {
-    throw new Error("Type already exists");
   }
 
   const normalizedFields = (fields || []).map((field) => ({
@@ -302,19 +384,32 @@ function addType(typeName, fields) {
     }
   }
 
-  config.types[trimmed] = { fields: normalizedFields };
-  saveConfig(config);
-  return config;
+  await pool.query(
+    `
+    INSERT INTO types (name, fields_json)
+    VALUES ($1, $2::jsonb)
+    ON CONFLICT (name) DO NOTHING
+    `,
+    [trimmed, JSON.stringify(normalizedFields)]
+  );
+
+  return getConfig();
 }
 
-function removeType(typeName) {
-  const config = getConfig();
-  delete config.types[typeName];
-  saveConfig(config);
-  return config;
+async function removeType(typeName) {
+  await pool.query(
+    `
+    DELETE FROM types
+    WHERE name = $1
+    `,
+    [typeName]
+  );
+
+  return getConfig();
 }
 
 module.exports = {
+  initDb,
   getItems,
   addItem,
   editItem,
