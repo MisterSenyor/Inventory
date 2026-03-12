@@ -3,6 +3,7 @@ import {
   editItem,
   getConfig,
   getItems,
+  getUsers,
   loanItemWithChildren,
   removeItem,
   returnItemWithChildren,
@@ -13,6 +14,7 @@ import EditItemModal from "../components/EditItemModal";
 
 export default function ItemsPage() {
   const [items, setItems] = useState([]);
+  const [users, setUsers] = useState([]);
   const [config, setConfig] = useState(null);
   const [filters, setFilters] = useState({
     search: "",
@@ -27,10 +29,14 @@ export default function ItemsPage() {
   }, []);
 
   async function load() {
-    const loadedItems = await getItems();
-    const loadedConfig = await getConfig();
+    const [loadedItems, loadedConfig, loadedUsers] = await Promise.all([
+      getItems(),
+      getConfig(),
+      getUsers(),
+    ]);
 
-    setItems(loadedItems);
+    setItems(Array.isArray(loadedItems) ? loadedItems : []);
+    setUsers(Array.isArray(loadedUsers) ? loadedUsers : []);
     setConfig(loadedConfig);
     setFilters((prev) => ({
       ...prev,
@@ -96,6 +102,7 @@ export default function ItemsPage() {
             <ItemTree
               items={filtered}
               allItems={items}
+              users={users}
               onEdit={setEditingItem}
             />
           </div>
@@ -106,6 +113,7 @@ export default function ItemsPage() {
         open={!!editingItem}
         item={editingItem}
         items={availableItems}
+        users={users}
         config={config}
         onClose={() => setEditingItem(null)}
         onSave={async (id, data) => {

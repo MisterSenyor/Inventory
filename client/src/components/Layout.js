@@ -30,6 +30,13 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
           </button>
 
           <button
+            className={`sidebar-button ${currentPanel === "users" ? "active" : ""}`}
+            onClick={() => setPanel("users")}
+          >
+            משתמשים
+          </button>
+
+          <button
             className={`sidebar-button ${currentPanel === "status" ? "active" : ""}`}
             onClick={() => setPanel("status")}
           >

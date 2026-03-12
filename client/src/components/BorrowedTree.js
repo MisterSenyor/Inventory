@@ -1,11 +1,33 @@
 import { useMemo, useState } from "react";
 import ImageLightbox from "./ImageLightbox";
 
-function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }) {
+function getBorrowerText(item, usersById) {
+  const borrower = usersById[String(item.loanedTo)] || null;
+
+  if (!borrower) {
+    return item.loanedTo || "-";
+  }
+
+  if (borrower.phoneNumber) {
+    return `${borrower.name} (${borrower.id}) · ${borrower.phoneNumber}`;
+  }
+
+  return `${borrower.name} (${borrower.id})`;
+}
+
+function BorrowedCard({
+  item,
+  itemsByParent,
+  usersById,
+  depth,
+  onReturnTree,
+  onImageClick,
+}) {
   const [expanded, setExpanded] = useState(true);
   const children = itemsByParent[item.id] || [];
   const hasChildren = children.length > 0;
   const fieldEntries = Object.entries(item.fields || {});
+  const borrowerText = getBorrowerText(item, usersById);
 
   return (
     <div className={depth > 0 ? "indented" : ""}>
@@ -44,7 +66,7 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
                   <span className="meta-badge">{item.type || "ללא סוג"}</span>
                   <span className="meta-badge">{item.class || "ללא קטגוריה"}</span>
                   <span className="meta-badge loaned">
-                    מושאל ל־{item.loanedTo}
+                    מושאל ל־{borrowerText}
                   </span>
                 </div>
               </div>
@@ -66,6 +88,10 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
               <strong>מזהה אב:</strong> <span>{item.parentId || "-"}</span>
             </div>
 
+            <div className="field-row">
+              <strong>מושאל ל־</strong> <span>{borrowerText}</span>
+            </div>
+
             {fieldEntries.map(([key, value]) => (
               <div className="field-row" key={key}>
                 <strong>{key}:</strong> <span>{String(value)}</span>
@@ -80,6 +106,7 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
                   key={child.id}
                   item={child}
                   itemsByParent={itemsByParent}
+                  usersById={usersById}
                   depth={depth + 1}
                   onReturnTree={onReturnTree}
                   onImageClick={onImageClick}
@@ -93,8 +120,16 @@ function BorrowedCard({ item, itemsByParent, depth, onReturnTree, onImageClick }
   );
 }
 
-export default function BorrowedTree({ items = [], onReturnTree }) {
+export default function BorrowedTree({ items = [], users = [], onReturnTree }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
+
+  const usersById = useMemo(() => {
+    const map = {};
+    for (const user of users) {
+      map[String(user.id)] = user;
+    }
+    return map;
+  }, [users]);
 
   const itemsByParent = useMemo(() => {
     const normalizedItems = Array.isArray(items) ? items : [];
@@ -135,6 +170,7 @@ export default function BorrowedTree({ items = [], onReturnTree }) {
             key={item.id}
             item={item}
             itemsByParent={itemsByParent}
+            usersById={usersById}
             depth={0}
             onReturnTree={onReturnTree}
             onImageClick={(src, alt) => setLightbox({ open: true, src, alt })}

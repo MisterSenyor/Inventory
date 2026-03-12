@@ -31,6 +31,13 @@ async function initDb() {
       fields_json JSONB NOT NULL DEFAULT '[]'::jsonb
     );
   `);
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone_number TEXT NOT NULL DEFAULT ''
+  );
+`);
 }
 
 async function getItems() {
@@ -407,6 +414,127 @@ async function removeType(typeName) {
 
   return getConfig();
 }
+async function getUsers() {
+  const result = await pool.query(`
+    SELECT id, name, phone_number
+    FROM users
+    ORDER BY name, id
+  `);
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    phoneNumber: row.phone_number,
+  }));
+}
+
+async function addUser(data) {
+  const id = String(data.id || "").trim();
+  const name = String(data.name || "").trim();
+  const phoneNumber = String(data.phoneNumber || "").trim();
+
+  if (!id) {
+    throw new Error("User ID is required");
+  }
+
+  if (!name) {
+    throw new Error("User name is required");
+  }
+
+  await pool.query(
+    `
+    INSERT INTO users (id, name, phone_number)
+    VALUES ($1, $2, $3)
+    `,
+    [id, name, phoneNumber]
+  );
+
+  return {
+    id,
+    name,
+    phoneNumber,
+  };
+}
+
+async function editUser(id, updates) {
+  const userId = String(id);
+
+  const existingResult = await pool.query(
+    `
+    SELECT id, name, phone_number
+    FROM users
+    WHERE id = $1
+    `,
+    [userId]
+  );
+
+  if (existingResult.rowCount === 0) {
+    throw new Error(`User with id ${id} not found`);
+  }
+
+  const current = existingResult.rows[0];
+
+  const nextName =
+    updates.name === undefined ? current.name : String(updates.name || "").trim();
+
+  const nextPhoneNumber =
+    updates.phoneNumber === undefined
+      ? current.phone_number
+      : String(updates.phoneNumber || "").trim();
+
+  if (!nextName) {
+    throw new Error("User name is required");
+  }
+
+  await pool.query(
+    `
+    UPDATE users
+    SET name = $2, phone_number = $3
+    WHERE id = $1
+    `,
+    [userId, nextName, nextPhoneNumber]
+  );
+
+  return {
+    id: userId,
+    name: nextName,
+    phoneNumber: nextPhoneNumber,
+  };
+}
+
+async function removeUser(id) {
+  const userId = String(id);
+
+  const existingResult = await pool.query(
+    `
+    SELECT id
+    FROM users
+    WHERE id = $1
+    `,
+    [userId]
+  );
+
+  if (existingResult.rowCount === 0) {
+    throw new Error(`User with id ${id} not found`);
+  }
+
+  await pool.query(
+    `
+    UPDATE items
+    SET loaned_to = NULL
+    WHERE loaned_to = $1
+    `,
+    [userId]
+  );
+
+  await pool.query(
+    `
+    DELETE FROM users
+    WHERE id = $1
+    `,
+    [userId]
+  );
+}
 
 module.exports = {
   initDb,
@@ -423,4 +551,8 @@ module.exports = {
   removeClass,
   addType,
   removeType,
+  getUsers,
+  addUser,
+  editUser,
+  removeUser,
 };

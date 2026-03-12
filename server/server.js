@@ -232,6 +232,40 @@ app.delete("/api/config/types/:name", requireAuth, async (req, res) => {
     res.status(400).send(err.message || "Failed to remove type");
   }
 });
+app.get("/api/users", requireAuth, async (req, res) => {
+  try {
+    res.json(await store.getUsers());
+  } catch (err) {
+    res.status(500).send(err.message || "Failed to fetch users");
+  }
+});
+
+app.post("/api/users", requireAuth, async (req, res) => {
+  try {
+    const user = await store.addUser(req.body);
+    res.json(user);
+  } catch (err) {
+    res.status(400).send(err.message || "Failed to add user");
+  }
+});
+
+app.put("/api/users/:id", requireAuth, async (req, res) => {
+  try {
+    const user = await store.editUser(req.params.id, req.body);
+    res.json(user);
+  } catch (err) {
+    res.status(400).send(err.message || "Failed to edit user");
+  }
+});
+
+app.delete("/api/users/:id", requireAuth, async (req, res) => {
+  try {
+    await store.removeUser(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).send(err.message || "Failed to remove user");
+  }
+});
 
 async function start() {
   await store.initDb();

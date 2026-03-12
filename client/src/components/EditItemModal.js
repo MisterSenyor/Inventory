@@ -30,10 +30,16 @@ function renderFieldInput(fieldDef, value, onChange) {
   );
 }
 
+function getUserDisplay(user) {
+  const phone = user.phoneNumber ? ` · ${user.phoneNumber}` : "";
+  return `${user.name} (${user.id})${phone}`;
+}
+
 export default function EditItemModal({
   open,
   item,
   items,
+  users = [],
   config,
   onClose,
   onSave,
@@ -81,6 +87,10 @@ export default function EditItemModal({
     }
     return config.types[type].fields || [];
   }, [type, config]);
+
+  const selectedUser = useMemo(() => {
+    return users.find((user) => String(user.id) === String(loanUserId)) || null;
+  }, [users, loanUserId]);
 
   if (!open || !item) {
     return null;
@@ -251,14 +261,27 @@ export default function EditItemModal({
             </div>
             <div className="card-body form-grid">
               <div>
-                <label className="label">מזהה שואל</label>
-                <input
-                  className="input"
+                <label className="label">בחר שואל</label>
+                <select
+                  className="select"
                   value={loanUserId}
                   onChange={(e) => setLoanUserId(e.target.value)}
-                  placeholder="הכנס מזהה שואל"
-                />
+                >
+                  <option value="">בחר משתמש</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {getUserDisplay(user)}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              {selectedUser && (
+                <div className="field-row">
+                  <strong>נבחר:</strong>
+                  <span>{getUserDisplay(selectedUser)}</span>
+                </div>
+              )}
 
               <div className="toolbar">
                 <button

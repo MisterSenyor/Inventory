@@ -1,12 +1,34 @@
 import { useMemo, useState } from "react";
 import ImageLightbox from "./ImageLightbox";
 
-function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
+function getBorrowerText(item, usersById) {
+  const borrower = usersById[String(item.loanedTo)] || null;
+
+  if (!borrower) {
+    return item.loanedTo || "-";
+  }
+
+  if (borrower.phoneNumber) {
+    return `${borrower.name} (${borrower.id}) · ${borrower.phoneNumber}`;
+  }
+
+  return `${borrower.name} (${borrower.id})`;
+}
+
+function ItemCard({
+  item,
+  allItemsByParent,
+  usersById,
+  depth,
+  onEdit,
+  onImageClick,
+}) {
   const [expanded, setExpanded] = useState(true);
   const children = allItemsByParent[item.id] || [];
   const fieldEntries = Object.entries(item.fields || {});
   const hasChildren = children.length > 0;
   const isMissing = !!item.loanedTo;
+  const borrowerText = isMissing ? getBorrowerText(item, usersById) : "";
 
   return (
     <div className={depth > 0 ? "indented" : ""}>
@@ -43,7 +65,7 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
                   {item.name}
                   {isMissing && (
                     <span className="missing-label">
-                      חסר · מושאל ל־{item.loanedTo}
+                      חסר · מושאל ל־{borrowerText}
                     </span>
                   )}
                 </div>
@@ -77,7 +99,7 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
 
             {isMissing && (
               <div className="field-row">
-                <strong>סטטוס:</strong> <span>מושאל ל־{item.loanedTo}</span>
+                <strong>סטטוס:</strong> <span>מושאל ל־{borrowerText}</span>
               </div>
             )}
 
@@ -95,6 +117,7 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
                   key={child.id}
                   item={child}
                   allItemsByParent={allItemsByParent}
+                  usersById={usersById}
                   depth={depth + 1}
                   onEdit={onEdit}
                   onImageClick={onImageClick}
@@ -108,8 +131,16 @@ function ItemCard({ item, allItemsByParent, depth, onEdit, onImageClick }) {
   );
 }
 
-export default function ItemTree({ items, allItems, onEdit }) {
+export default function ItemTree({ items, allItems, users = [], onEdit }) {
   const [lightbox, setLightbox] = useState({ open: false, src: "", alt: "" });
+
+  const usersById = useMemo(() => {
+    const map = {};
+    for (const user of users) {
+      map[String(user.id)] = user;
+    }
+    return map;
+  }, [users]);
 
   const allItemsByParent = useMemo(() => {
     const normalizedAllItems = Array.isArray(allItems) ? allItems : [];
@@ -142,6 +173,7 @@ export default function ItemTree({ items, allItems, onEdit }) {
             key={item.id}
             item={item}
             allItemsByParent={allItemsByParent}
+            usersById={usersById}
             depth={0}
             onEdit={onEdit}
             onImageClick={(src, alt) => setLightbox({ open: true, src, alt })}

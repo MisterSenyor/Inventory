@@ -78,6 +78,32 @@ export async function getConfig() {
   return await apiFetch("/api/config");
 }
 
+export async function getUsers() {
+  return await apiFetch("/api/users");
+}
+
+export async function addUser(data) {
+  return await apiFetch("/api/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function editUser(id, data) {
+  return await apiFetch(`/api/users/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeUser(id) {
+  return await apiFetch(`/api/users/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
 export async function uploadImage(file) {
   const token = getStoredToken();
   const formData = new FormData();

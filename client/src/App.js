@@ -6,6 +6,7 @@ import AddItemPage from "./pages/AddItemPage";
 import BorrowedPage from "./pages/BorrowedPage";
 import SettingsPage from "./pages/SettingsPage";
 import StatusPage from "./pages/StatusPage";
+import UsersPage from "./pages/UsersPage";
 import { getMe, login, logout } from "./api/api";
 
 export default function App() {
@@ -56,6 +57,8 @@ export default function App() {
     page = <AddItemPage />;
   } else if (panel === "borrowed") {
     page = <BorrowedPage />;
+  } else if (panel === "users") {
+    page = <UsersPage />;
   } else if (panel === "status") {
     page = <StatusPage />;
   } else {
