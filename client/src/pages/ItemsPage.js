@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   editItem,
   getConfig,
@@ -48,11 +48,7 @@ export default function ItemsPage({ role = "viewer" }) {
   });
   const [editingItem, setEditingItem] = useState(null);
 
-  useEffect(() => {
-    load();
-  }, [role]);
-
-  async function load() {
+  const load = useCallback(async () => {
     if (isAdmin) {
       const [loadedItems, loadedConfig, loadedUsers] = await Promise.all([
         getItems(),
@@ -91,7 +87,11 @@ export default function ItemsPage({ role = "viewer" }) {
           ? prev.classes
           : [...(fallbackConfig.classes || [])],
     }));
-  }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (!config) {
     return <div className="empty-state">טוען מלאי...</div>;
