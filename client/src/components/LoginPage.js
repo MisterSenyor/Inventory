@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 export default function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,11 +27,11 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         <h1 className="page-title" style={{ fontSize: 28, marginBottom: 8 }}>
-          התחברות מנהל
+          התחברות
         </h1>
 
         <div className="page-subtitle" style={{ marginBottom: 20 }}>
-          התחבר כדי לנהל את המלאי וההשאלות.
+          התחבר כמנהל או כמשתמש השאלה.
         </div>
 
         {error && <div className="notice-error">{error}</div>}

@@ -36,19 +36,55 @@ app.use(
 
 app.use(bodyParser.json());
 
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "blueshelf-admin-token";
+const USERS = [
+  {
+    username: process.env.ADMIN_USERNAME || "admin",
+    password: process.env.ADMIN_PASSWORD || "admin",
+    role: "admin",
+    token: process.env.ADMIN_TOKEN || "blueshelf-admin-token",
+  },
+  {
+    username: process.env.VIEWER_USERNAME || "viewer",
+    password: process.env.VIEWER_PASSWORD || "viewer",
+    role: "viewer",
+    token: process.env.VIEWER_TOKEN || "blueshelf-viewer-token",
+  },
+];
 
-function requireAuth(req, res, next) {
+function getTokenFromRequest(req) {
   const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ")
+  return authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length)
     : "";
+}
 
-  if (token === ADMIN_TOKEN) {
-    return next();
+function getUserByToken(token) {
+  return USERS.find((user) => user.token === token) || null;
+}
+
+function requireAuth(req, res, next) {
+  const token = getTokenFromRequest(req);
+  const user = getUserByToken(token);
+
+  if (!user) {
+    return res.status(401).send("Unauthorized");
   }
 
-  return res.status(401).send("Unauthorized");
+  req.authUser = {
+    username: user.username,
+    role: user.role,
+    token: user.token,
+  };
+
+  return next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.authUser || req.authUser.role !== "admin") {
+    return res.status(403).send("Forbidden");
+  }
+
+  return next();
 }
 
 const uploadsDir = path.join(__dirname, "uploads");
@@ -76,15 +112,20 @@ app.post("/api/login", (req, res) => {
   const username = String(req.body.username || "");
   const password = String(req.body.password || "");
 
-  if (username === "admin" && password === "admin") {
-    return res.json({
-      authenticated: true,
-      user: "admin",
-      token: ADMIN_TOKEN,
-    });
+  const user = USERS.find(
+    (entry) => entry.username === username && entry.password === password
+  );
+
+  if (!user) {
+    return res.status(401).send("Invalid username or password");
   }
 
-  return res.status(401).send("Invalid username or password");
+  return res.json({
+    authenticated: true,
+    user: user.username,
+    role: user.role,
+    token: user.token,
+  });
 });
 
 app.post("/api/logout", (req, res) => {
@@ -92,16 +133,18 @@ app.post("/api/logout", (req, res) => {
 });
 
 app.get("/api/me", (req, res) => {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice("Bearer ".length)
-    : "";
+  const token = getTokenFromRequest(req);
+  const user = getUserByToken(token);
 
-  if (token === ADMIN_TOKEN) {
-    return res.json({ authenticated: true, user: "admin" });
+  if (!user) {
+    return res.json({ authenticated: false });
   }
 
-  return res.json({ authenticated: false });
+  return res.json({
+    authenticated: true,
+    user: user.username,
+    role: user.role,
+  });
 });
 
 app.get("/api/items", requireAuth, async (req, res) => {
@@ -112,7 +155,7 @@ app.get("/api/items", requireAuth, async (req, res) => {
   }
 });
 
-app.get("/api/config", requireAuth, async (req, res) => {
+app.get("/api/config", requireAuth, requireAdmin, async (req, res) => {
   try {
     res.json(await store.getConfig());
   } catch (err) {
@@ -120,7 +163,7 @@ app.get("/api/config", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/upload-image", requireAuth, upload.single("image"), async (req, res) => {
+app.post("/api/upload-image", requireAuth, requireAdmin, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send("No image uploaded");
@@ -134,7 +177,7 @@ app.post("/api/upload-image", requireAuth, upload.single("image"), async (req, r
   }
 });
 
-app.post("/api/items", requireAuth, async (req, res) => {
+app.post("/api/items", requireAuth, requireAdmin, async (req, res) => {
   try {
     const item = await store.addItem(req.body);
     res.json(item);
@@ -143,7 +186,7 @@ app.post("/api/items", requireAuth, async (req, res) => {
   }
 });
 
-app.put("/api/items/:id", requireAuth, async (req, res) => {
+app.put("/api/items/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updated = await store.editItem(req.params.id, req.body);
     res.json(updated);
@@ -152,7 +195,7 @@ app.put("/api/items/:id", requireAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/items/:id", requireAuth, async (req, res) => {
+app.delete("/api/items/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     await store.removeItem(req.params.id);
     res.json({ success: true });
@@ -197,7 +240,7 @@ app.post("/api/return-with-children", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/config/classes", requireAuth, async (req, res) => {
+app.post("/api/config/classes", requireAuth, requireAdmin, async (req, res) => {
   try {
     const config = await store.addClass(req.body.name);
     res.json(config);
@@ -206,7 +249,7 @@ app.post("/api/config/classes", requireAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/config/classes/:name", requireAuth, async (req, res) => {
+app.delete("/api/config/classes/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     const config = await store.removeClass(req.params.name);
     res.json(config);
@@ -215,7 +258,7 @@ app.delete("/api/config/classes/:name", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/config/types", requireAuth, async (req, res) => {
+app.post("/api/config/types", requireAuth, requireAdmin, async (req, res) => {
   try {
     const config = await store.addType(req.body.name, req.body.fields || []);
     res.json(config);
@@ -224,7 +267,7 @@ app.post("/api/config/types", requireAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/config/types/:name", requireAuth, async (req, res) => {
+app.delete("/api/config/types/:name", requireAuth, requireAdmin, async (req, res) => {
   try {
     const config = await store.removeType(req.params.name);
     res.json(config);
@@ -232,6 +275,7 @@ app.delete("/api/config/types/:name", requireAuth, async (req, res) => {
     res.status(400).send(err.message || "Failed to remove type");
   }
 });
+
 app.get("/api/users", requireAuth, async (req, res) => {
   try {
     res.json(await store.getUsers());
@@ -240,7 +284,7 @@ app.get("/api/users", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/users", requireAuth, async (req, res) => {
+app.post("/api/users", requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = await store.addUser(req.body);
     res.json(user);
@@ -249,7 +293,7 @@ app.post("/api/users", requireAuth, async (req, res) => {
   }
 });
 
-app.put("/api/users/:id", requireAuth, async (req, res) => {
+app.put("/api/users/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = await store.editUser(req.params.id, req.body);
     res.json(user);
@@ -258,7 +302,7 @@ app.put("/api/users/:id", requireAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/users/:id", requireAuth, async (req, res) => {
+app.delete("/api/users/:id", requireAuth, requireAdmin, async (req, res) => {
   try {
     await store.removeUser(req.params.id);
     res.json({ success: true });

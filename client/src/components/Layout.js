@@ -1,10 +1,24 @@
-export default function Layout({ currentPanel, setPanel, onLogout, children }) {
+export default function Layout({ currentPanel, setPanel, onLogout, role, children }) {
+  const isAdmin = role === "admin";
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">טקסטילון</div>
-        <div className="sidebar-subtitle">
-          ניהול מלאי והשאלות
+        <div className="sidebar-subtitle">ניהול מלאי והשאלות</div>
+
+        <div
+          style={{
+            marginTop: 10,
+            marginBottom: 16,
+            fontSize: 13,
+            color: "#5f6b7a",
+            background: "#f4f7fb",
+            borderRadius: 10,
+            padding: "8px 10px",
+          }}
+        >
+          מחובר כ: {isAdmin ? "מנהל" : "משתמש השאלה"}
         </div>
 
         <nav className="sidebar-nav">
@@ -16,24 +30,10 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
           </button>
 
           <button
-            className={`sidebar-button ${currentPanel === "add" ? "active" : ""}`}
-            onClick={() => setPanel("add")}
-          >
-            הוספת פריט
-          </button>
-
-          <button
             className={`sidebar-button ${currentPanel === "borrowed" ? "active" : ""}`}
             onClick={() => setPanel("borrowed")}
           >
             מושאלים
-          </button>
-
-          <button
-            className={`sidebar-button ${currentPanel === "users" ? "active" : ""}`}
-            onClick={() => setPanel("users")}
-          >
-            משתמשים
           </button>
 
           <button
@@ -43,12 +43,30 @@ export default function Layout({ currentPanel, setPanel, onLogout, children }) {
             סטטוס
           </button>
 
-          <button
-            className={`sidebar-button ${currentPanel === "settings" ? "active" : ""}`}
-            onClick={() => setPanel("settings")}
-          >
-            הגדרות
-          </button>
+          {isAdmin && (
+            <>
+              <button
+                className={`sidebar-button ${currentPanel === "add" ? "active" : ""}`}
+                onClick={() => setPanel("add")}
+              >
+                הוספת פריט
+              </button>
+
+              <button
+                className={`sidebar-button ${currentPanel === "users" ? "active" : ""}`}
+                onClick={() => setPanel("users")}
+              >
+                משתמשים
+              </button>
+
+              <button
+                className={`sidebar-button ${currentPanel === "settings" ? "active" : ""}`}
+                onClick={() => setPanel("settings")}
+              >
+                הגדרות
+              </button>
+            </>
+          )}
         </nav>
 
         <div style={{ marginTop: 20 }}>

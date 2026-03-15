@@ -12,7 +12,31 @@ import Filters from "../components/Filters";
 import ItemTree from "../components/ItemTree";
 import EditItemModal from "../components/EditItemModal";
 
-export default function ItemsPage() {
+function buildFallbackConfig(items) {
+  const classes = [...new Set((items || []).map((item) => item.class).filter(Boolean))];
+
+  const typeNames = [...new Set((items || []).map((item) => item.type).filter(Boolean))];
+
+  const types = typeNames.map((typeName) => {
+    const matchingItems = (items || []).filter((item) => item.type === typeName);
+
+    const fieldSet = new Set();
+    matchingItems.forEach((item) => {
+      Object.keys(item.fields || {}).forEach((key) => fieldSet.add(key));
+    });
+
+    return {
+      name: typeName,
+      fields: [...fieldSet],
+    };
+  });
+
+  return { classes, types };
+}
+
+export default function ItemsPage({ role = "viewer" }) {
+  const isAdmin = role === "admin";
+
   const [items, setItems] = useState([]);
   const [users, setUsers] = useState([]);
   const [config, setConfig] = useState(null);
@@ -26,22 +50,46 @@ export default function ItemsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [role]);
 
   async function load() {
-    const [loadedItems, loadedConfig, loadedUsers] = await Promise.all([
+    if (isAdmin) {
+      const [loadedItems, loadedConfig, loadedUsers] = await Promise.all([
+        getItems(),
+        getConfig(),
+        getUsers(),
+      ]);
+
+      setItems(Array.isArray(loadedItems) ? loadedItems : []);
+      setUsers(Array.isArray(loadedUsers) ? loadedUsers : []);
+      setConfig(loadedConfig);
+      setFilters((prev) => ({
+        ...prev,
+        classes:
+          prev.classes.length > 0
+            ? prev.classes
+            : [...(loadedConfig?.classes || [])],
+      }));
+      return;
+    }
+
+    const [loadedItems, loadedUsers] = await Promise.all([
       getItems(),
-      getConfig(),
       getUsers(),
     ]);
 
-    setItems(Array.isArray(loadedItems) ? loadedItems : []);
+    const safeItems = Array.isArray(loadedItems) ? loadedItems : [];
+    const fallbackConfig = buildFallbackConfig(safeItems);
+
+    setItems(safeItems);
     setUsers(Array.isArray(loadedUsers) ? loadedUsers : []);
-    setConfig(loadedConfig);
+    setConfig(fallbackConfig);
     setFilters((prev) => ({
       ...prev,
       classes:
-        prev.classes.length > 0 ? prev.classes : [...(loadedConfig.classes || [])],
+        prev.classes.length > 0
+          ? prev.classes
+          : [...(fallbackConfig.classes || [])],
     }));
   }
 
@@ -115,8 +163,10 @@ export default function ItemsPage() {
         items={availableItems}
         users={users}
         config={config}
+        role={role}
         onClose={() => setEditingItem(null)}
         onSave={async (id, data) => {
+          if (!isAdmin) return;
           await editItem(id, data);
           await load();
           setEditingItem(null);
@@ -132,6 +182,7 @@ export default function ItemsPage() {
           setEditingItem(null);
         }}
         onRemove={async (id) => {
+          if (!isAdmin) return;
           await removeItem(id);
           await load();
           setEditingItem(null);

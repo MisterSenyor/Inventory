@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { getItems, getUsers, returnItem } from "../api/api";
 import BorrowedTree from "../components/BorrowedTree";
 
-export default function BorrowedPage() {
+export default function BorrowedPage({ role = "viewer" }) {
+  const isAdmin = role === "admin";
+
   const [items, setItems] = useState([]);
   const [users, setUsers] = useState([]);
   const [friend, setFriend] = useState("");
@@ -76,7 +78,9 @@ export default function BorrowedPage() {
       <div className="page-header">
         <h1 className="page-title">פריטים מושאלים</h1>
         <div className="page-subtitle">
-          מעקב אחר פריטים מושאלים והחזרה של פריט בודד.
+          {isAdmin
+            ? "מעקב אחר פריטים מושאלים והחזרה של פריט בודד."
+            : "צפייה בפריטים מושאלים והחזרה של פריט בודד."}
         </div>
       </div>
 
